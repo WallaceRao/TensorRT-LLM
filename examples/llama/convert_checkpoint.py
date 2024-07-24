@@ -44,7 +44,7 @@ def parse_arguments():
 
     parser.add_argument(
         '--use_weight_only',
-        default=False,
+        default=True,
         action="store_true",
         help='Quantize weights for the various GEMMs to INT4/INT8.'
         'See --weight_only_precision to set the precision')
@@ -58,7 +58,7 @@ def parse_arguments():
     )
     parser.add_argument(
         '--weight_only_precision',
-        const='int8',
+        const='int4',
         type=str,
         nargs='?',
         default='int8',

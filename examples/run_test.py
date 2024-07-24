@@ -38,7 +38,7 @@ if PYTHON_BINDINGS:
 
 def parse_arguments(args=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--max_output_len', type=int,  default=1000)
+    parser.add_argument('--max_output_len', type=int,  default=1024)
     parser.add_argument(
         '--max_attention_window_size',
         type=int,
@@ -51,7 +51,8 @@ def parse_arguments(args=None):
                         default=None,
                         help='The sink token length.')
     parser.add_argument('--log_level', type=str, default='error')
-    parser.add_argument('--engine_dir', type=str, default='/mnt/data2/share/raoyonghui/tensor_llm/TensorRT-LLM/llama-trt-engine')
+    #parser.add_argument('--engine_dir', type=str, default='/mnt/data2/share/raoyonghui/tensor_llm/TensorRT-LLM/llama-trt-engine-float16')
+    parser.add_argument('--engine_dir', type=str, default='/mnt/data2/share/raoyonghui/tensor_llm/TensorRT-LLM/llama-trt-engine-float16-weight_quant_engine')
     parser.add_argument('--use_py_session',
                         default=False,
                         action='store_true',
@@ -74,7 +75,7 @@ def parse_arguments(args=None):
         help=
         'CSV or Numpy file containing tokenized input. Alternative to text input.',
         default=None)
-    parser.add_argument('--max_input_length', type=int, default=512)
+    parser.add_argument('--max_input_length', type=int, default=1024)
     parser.add_argument('--output_csv',
                         type=str,
                         help='CSV file where the tokenized output is stored.',
@@ -196,7 +197,7 @@ def do_infer(args, input_tokens):
     pad_id = 3072
     end_id = 3074
     batch_input_ids = [input_tokens]
-    print("batch_input_ids:", batch_input_ids)
+    #print("batch_input_ids:", batch_input_ids)
     input_lengths = [len(batch_input_ids[0])]
     batch_input_ids = torch.as_tensor(batch_input_ids, dtype=torch.int32).cuda()
     input_lengths = torch.as_tensor(input_lengths, dtype=torch.int32).cuda()
@@ -273,8 +274,8 @@ def do_infer(args, input_tokens):
                 output_tokens = output_ids[0, 0, 0:sequence_lengths[0][0]].cpu().tolist()
                 cum_log_probs = None
                 log_probs = None
-                print("output_ids:", output_ids)
-                print("sequence_lengths:", sequence_lengths)
+                #print("stream cur output_ids:", output_ids)
+                #print("sequence_lengths:", sequence_lengths)
               
     else:
         if runtime_rank == 0:
@@ -285,16 +286,18 @@ def do_infer(args, input_tokens):
             generation_logits = None
             cum_log_probs = None
             log_probs = None
-            print("output_ids:", output_ids)
-            print("sequence_lengths:", sequence_lengths)
-    print("output_tokens shape:", len(output_tokens))
+            #print("output_ids:", output_ids)
+            #print("sequence_lengths:", sequence_lengths)
+    #print("output_tokens shape:", len(output_tokens))
     return output_tokens
-
+import time
 def run_infer(input_tokens):
     global args
     if args == None:
         args = parse_arguments()
+    print("begin do infer:", time.time())
     output_tokens = do_infer(args, input_tokens)
+    print("finish do infer:", time.time())
     return output_tokens
 
 
